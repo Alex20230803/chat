@@ -1,0 +1,20 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Google Consent (demo)</title>
+  </head>
+  <body style="font-family:system-ui, -apple-system, sans-serif; padding:20px;">
+    <h2>Google account consent (demo)</h2>
+    <p>This is a fake Google consent page for the local demo. Clicking Accept will
+    simulate returning a token to the app.</p>
+    <button id="accept">Accept</button>
+    <script>
+      document.getElementById('accept').addEventListener('click', () => {
+        // Normally Google would redirect back with a code; we simulate by
+        // redirecting to / with a query param that the app can handle.
+        window.location.href = '/?google_auth=1';
+      });
+    </script>
+  </body>
+</html>

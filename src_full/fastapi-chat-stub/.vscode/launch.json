@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FastAPI HTTPS (8240)",
+      "type": "python",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": [
+        "app.main:app",
+        "--host", "0.0.0.0",
+        "--port", "8240",
+        "--ssl-keyfile", "${workspaceFolder}/scripts/key.pem",
+        "--ssl-certfile", "${workspaceFolder}/scripts/cert.pem"
+      ],
+      "preLaunchTask": "Generate self-signed cert",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

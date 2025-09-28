@@ -1,0 +1,3 @@
+"tgname","func","tgenabled","fires","on_relation"
+"trg_v_chat_messages_delete","tg_v_chat_messages_delete","O",65,"v_chat_messages"
+"trg_v_chat_messages_upsert","tg_v_chat_messages_upsert","O",69,"v_chat_messages"

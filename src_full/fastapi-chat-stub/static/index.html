@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatStub (FastAPI + HTML/JS)</title>
+    <style>
+      /* global box-sizing and prevent horizontal overflow */
+      *, *::before, *::after { box-sizing: border-box; }
+      :root { color-scheme: light; }
+      html, body { height: 100%; }
+      body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f6f7fb; color:#111; overflow-x: hidden; }
+      .layout { display:grid; grid-template-columns: 300px 1fr; height: 100vh; overflow: hidden; }
+      .side { background:#fff; border-right:1px solid #e5e7eb; padding:12px; display:flex; flex-direction:column; gap:12px; min-width: 0; }
+      .main { display:grid; grid-template-rows: auto 1fr auto; min-width: 0; }
+      .top { background:#fff; border-bottom:1px solid #e5e7eb; padding:10px 14px; display:flex; align-items:center; gap:8px; }
+  /* messages area scrolls internally and can shrink in the grid; reserve bottom padding for composer height */
+  .msgs { padding:14px; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling: touch; min-width: 0; min-height: 0; }
+      .msg { max-width: 820px; margin:8px 0; word-break: break-word; }
+      .bubble { border:1px solid #e5e7eb; background:#fff; border-radius:16px; padding:10px 12px; box-shadow: 0 1px 0 rgba(0,0,0,.03); white-space:pre-wrap; }
+      .you { display:flex; justify-content:flex-end; }
+      .you .bubble { background:#eef6ff; border-color:#dbeafe; }
+      /* composer fixed visually at bottom of the main column */
+      .composer { background:#fff; border-top:1px solid #e5e7eb; padding:10px; position: sticky; bottom: 0; z-index: 6; }
+      textarea { width:100%; max-width:100%; resize:vertical; min-height:90px; max-height:40vh; padding:10px; border-radius:12px; border:1px solid #e5e7eb; outline:none; }
+      button { border:1px solid #e5e7eb; background:#fff; border-radius:10px; padding:6px 10px; cursor:pointer; }
+      button.primary { background:#111; color:#fff; border-color:#111; }
+      .conv { display:block; width:100%; text-align:left; padding:8px 10px; border-radius:10px; border:1px solid transparent; }
+      .conv.active { background:#f3f4f6; border-color:#e5e7eb; }
+      .muted { color:#6b7280; font-size:12px; }
+      .row { display:flex; gap:8px; align-items:center; }
+      .grow { flex:1 1 auto; min-width: 0; }
+      .hint { font-size:12px; color:#6b7280; margin-top:6px; }
+      /* attached files area should wrap and not force horizontal scroll */
+      #attachedFiles { max-width: 60vw; overflow-x: auto; }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="side">
+        <div class="row">
+          <strong>Диалоги</strong>
+          <span class="grow"></span>
+          <button id="newChatBtn">+ новый</button>
+        </div>
+        <div id="convs"></div>
+        <div class="muted">Эта версия использует заглушки. Реальные вызовы подключаются в <code>app/main.py</code>.</div>
+      </aside>
+
+      <main class="main">
+        <div class="top row">
+          <strong>ChatStub</strong>
+          <span class="grow"></span>
+          <label class="muted">Режим:</label>
+          <select id="modeSel">
+            <option value="sse">SSE (stream)</option>
+            <option value="json">JSON (once)</option>
+          </select>
+        </div>
+
+        <div class="msgs" id="msgs"></div>
+
+        <div class="composer">
+          <textarea id="input" placeholder="Напиши сюда запрос…"></textarea>
+          <div class="row" style="margin-top:8px;">
+              <div class="hint">Enter — отправить · Shift+Enter — перенос строки</div>
+              <span class="grow"></span>
+              <button id="attachBtn" title="Attach files" style="margin-right:8px;">📎</button>
+              <input id="fileInput" type="file" multiple style="display:none;" />
+              <div id="attachedFiles" style="display:inline-flex; gap:6px; align-items:center; margin-right:8px;"></div>
+              <button id="sendBtn" class="primary">Отправить</button>
+              <button id="stopBtn">Остановить</button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Simple login modal inserted before app.js so it's available to the script -->
+    <div id="loginModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center;">
+      <div style="background:#fff; padding:20px; border-radius:8px; width:360px;">
+        <h3>Вход</h3>
+        <div style="margin-bottom:8px;"><input id="loginUser" placeholder="Username" style="width:100%; padding:8px;"/></div>
+        <div style="margin-bottom:8px;"><input id="loginPass" type="password" placeholder="Password" style="width:100%; padding:8px;"/></div>
+        <div style="display:flex; gap:8px;">
+          <button id="loginBtn" class="primary">Войти</button>
+          <button id="loginGoogle">Войти через Google</button>
+        </div>
+        <div id="loginMsg" class="muted" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

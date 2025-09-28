@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Generate self-signed cert",
+      "type": "shell",
+      "command": "bash -lc './scripts/gen-cert.sh'",
+      "problemMatcher": []
+    }
+  ]
+}

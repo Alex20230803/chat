@@ -1,0 +1,19 @@
+# db/config.yaml  (реальный файл; желательно добавить в .gitignore)
+database:
+  # если используешь libpq service, достаточно service:
+  # service: run_prompt_db
+
+  # либо явные поля:
+  host: 127.0.0.1
+  port: 5432
+  name: run_prompt_db
+  user: postgres
+  password: G2320hdbl
+  sslmode: "prefer"          # optional: disable/prefer/require
+  options: "-c statement_timeout=30000 -c timezone=UTC"
+
+pool:
+  pool_size: 5
+  max_overflow: 10
+  pool_pre_ping: true
+
