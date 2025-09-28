@@ -1,0 +1,3 @@
+# generated for analysis
+*.pyc
+__pycache__/

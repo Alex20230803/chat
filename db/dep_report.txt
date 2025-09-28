@@ -1,0 +1,150 @@
+-- VIEWS --
+public.v_record_meta
+ SELECT t.id,
+    t.created,
+    t.updated,
+    t.is_del,
+    NULL::timestamp with time zone AS deleted_at
+   FROM tb_record_meta t
+  WHERE (t.is_del = false);
+public.v_pcaches
+ SELECT t.meta_id,
+    t.pcache_prompt,
+    t.pcache_prompt_hash,
+    t.pcache_response,
+    t.pcache_tokens_used,
+    pcache_assistant_content(t.pcache_response) AS pcache_content
+   FROM (t_pcaches t
+     JOIN v_record_meta m ON ((m.id = t.meta_id)));
+public.v_users
+ SELECT users.user_user,
+    users.user_id,
+    users.user_name
+   FROM dict.users() users(user_user, user_id, user_name);
+public.v_user_docs
+ SELECT d.meta_id,
+    d.user_id,
+    d.user_title,
+    d.user_lang_iso,
+    d.user_content_format,
+    d.user_content_len,
+    d.user_sha256,
+        CASE
+            WHEN (d.user_content_inline IS NOT NULL) THEN d.user_content_inline
+            WHEN (d.blob_meta_id IS NOT NULL) THEN convert_from(b.blob_content, 'UTF8'::name)
+            ELSE NULL::text
+        END AS user_content
+   FROM ((t_user_docs d
+     JOIN v_record_meta m ON ((m.id = d.meta_id)))
+     LEFT JOIN t_blobs b ON ((b.meta_id = d.blob_meta_id)))
+  WHERE (m.is_del = false);
+public.v_kinds
+ SELECT t.meta_id,
+    t.kind_code,
+    t.kind_name
+   FROM (t_kinds t
+     JOIN v_record_meta m ON ((m.id = t.meta_id)));
+public.v_agents
+ SELECT v_sub_kinds.meta_id,
+    v_sub_kinds.sub_kind_code,
+    v_sub_kinds.sub_kind_name,
+    v_sub_kinds.sub_kind_value,
+    v_sub_kinds.sub_kind_value_len,
+    v_sub_kinds.sub_kind_type,
+    v_sub_kinds.kind_meta_id,
+    v_sub_kinds.kind_code,
+    v_sub_kinds.kind_name,
+    v_sub_kinds.sub_kind_default_value
+   FROM v_sub_kinds
+  WHERE (v_sub_kinds.kind_code = 'agents'::text);
+public.v_sub_kinds
+ SELECT sk.meta_id,
+    sk.sub_kind_code,
+    sk.sub_kind_name,
+    sk.sub_kind_value,
+    char_length(sk.sub_kind_value) AS sub_kind_value_len,
+    sk.sub_kind_type,
+    sk.kind_meta_id,
+    k.kind_code,
+    k.kind_name,
+    sk.sub_kind_default_value
+   FROM (t_sub_kinds sk
+     LEFT JOIN t_kinds k ON ((k.meta_id = sk.kind_meta_id)));
+public.v_chat_groups
+ SELECT g.meta_id,
+    g.user_id,
+    g.parent_meta,
+    g.group_name
+   FROM (t_chat_groups g
+     JOIN v_record_meta m ON ((m.id = g.meta_id)));
+public.v_chat_sessions
+ SELECT s.meta_id,
+    s.user_id,
+    s.group_meta,
+    s.title,
+    s.last_message_at,
+    s.total_tokens
+   FROM (t_chat_sessions s
+     JOIN v_record_meta m ON ((m.id = s.meta_id)));
+public.v_chat_messages
+ SELECT m.meta_id,
+    m.session_meta,
+    m.user_id,
+    m.role,
+    m.content_format,
+    m.content_len,
+    m.content_sha256,
+    m.seq,
+    m.token_count,
+    m.metadata,
+        CASE
+            WHEN (m.content_inline IS NOT NULL) THEN m.content_inline
+            WHEN (m.blob_meta_id IS NOT NULL) THEN convert_from(b.blob_content, 'UTF8'::name)
+            ELSE NULL::text
+        END AS content
+   FROM ((t_chat_messages m
+     JOIN v_record_meta rm ON ((rm.id = m.meta_id)))
+     LEFT JOIN t_blobs b ON ((b.meta_id = m.blob_meta_id)));
+public.v_message_attachments
+ SELECT m.meta_id,
+    m.message_meta,
+    m.filename,
+    m.mime_type,
+    m.size_bytes,
+    m.blob_meta_id,
+    b.blob_sha256
+   FROM (t_message_attachments m
+     LEFT JOIN t_blobs b ON ((b.meta_id = m.blob_meta_id)));
+-- TRIGGERS --
+public.v_record_meta : trg_v_record_meta_update (INSTEAD OF UPDATE)
+public.v_record_meta : trg_v_record_meta_insert (INSTEAD OF INSERT)
+public.v_record_meta : trg_v_record_meta_delete (INSTEAD OF DELETE)
+public.t_blobs : trg_t_blobs_soft_delete (BEFORE DELETE)
+public.t_blobs : trg_t_blobs_mark_updated (BEFORE UPDATE)
+public.v_pcaches : v_pcaches_upsert (INSTEAD OF INSERT)
+public.v_pcaches : v_pcaches_upsert (INSTEAD OF UPDATE)
+public.v_pcaches : v_pcaches_del (INSTEAD OF DELETE)
+public.v_user_docs : trg_v_user_docs_upsert (INSTEAD OF INSERT)
+public.v_user_docs : trg_v_user_docs_upsert (INSTEAD OF UPDATE)
+public.v_user_docs : trg_v_user_docs_delete (INSTEAD OF DELETE)
+public.v_kinds : trg_v_kinds_upsert (INSTEAD OF INSERT)
+public.v_kinds : trg_v_kinds_upsert (INSTEAD OF UPDATE)
+public.v_kinds : trg_v_kinds_del (INSTEAD OF DELETE)
+public.v_sub_kinds : trg_v_sub_kinds_del (INSTEAD OF DELETE)
+public.v_sub_kinds : trg_v_sub_kinds_upsert (INSTEAD OF INSERT)
+public.v_sub_kinds : trg_v_sub_kinds_upsert (INSTEAD OF UPDATE)
+public.v_chat_groups : trg_v_chat_groups_delete (INSTEAD OF DELETE)
+public.v_chat_groups : trg_v_chat_groups_upsert (INSTEAD OF INSERT)
+public.v_chat_groups : trg_v_chat_groups_upsert (INSTEAD OF UPDATE)
+public.v_chat_sessions : trg_v_chat_sessions_delete (INSTEAD OF DELETE)
+public.v_chat_sessions : trg_v_chat_sessions_upsert (INSTEAD OF INSERT)
+public.v_chat_sessions : trg_v_chat_sessions_upsert (INSTEAD OF UPDATE)
+public.v_chat_messages : trg_v_chat_messages_delete (INSTEAD OF DELETE)
+public.v_chat_messages : trg_v_chat_messages_upsert (INSTEAD OF INSERT)
+public.v_chat_messages : trg_v_chat_messages_upsert (INSTEAD OF UPDATE)
+-- FOREIGN KEYS --
+public.t_user_docs -> public.t_blobs  [t_user_docs_blob_meta_id_fkey] (blob_meta_id->meta_id)
+public.t_sub_kinds -> public.t_kinds  [fk_t_sub_kinds_kind_meta_id] (kind_meta_id->meta_id)
+public.t_chat_messages -> public.t_blobs  [fk_msg_blob] (blob_meta_id->meta_id)
+public.t_chat_messages -> public.tb_record_meta  [fk_t_chat_messages_meta_record] (meta_id->id)
+public.t_message_attachments -> public.t_chat_messages  [fk_msgatt_message] (message_meta->meta_id)
