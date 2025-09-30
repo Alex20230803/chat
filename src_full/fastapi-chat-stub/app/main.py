@@ -410,3 +410,15 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
+
+
+# --- added by PatchAgent ---
+from fastapi import FastAPI
+try:
+    app
+except NameError:
+    app = FastAPI(title='App')
+
+@app.get('/healthz')
+def healthz():
+    return {'status':'ok'}
